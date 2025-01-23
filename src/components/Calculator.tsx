@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Calculator as CalcIcon } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Calculator as CalcIcon, RefreshCw } from "lucide-react";
 
 interface BMIResult {
   bmi: number;
@@ -8,19 +8,44 @@ interface BMIResult {
 }
 
 export default function Calculator() {
-  const [height, setHeight] = useState('');
-  const [weight, setWeight] = useState('');
-  const [unit, setUnit] = useState('metric');
+  const [height, setHeight] = useState("");
+  const [weight, setWeight] = useState("");
+  const [unit, setUnit] = useState("metric");
   const [result, setResult] = useState<BMIResult | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const savedUnit = localStorage.getItem("unit") || "metric";
+    setUnit(savedUnit);
+
+    // Scroll to calculator section when the component is mounted
+    const calculatorSection = document.getElementById("calculator");
+    if (calculatorSection) {
+      calculatorSection.scrollIntoView({ behavior: "smooth" });
+    }
+  }, []);
+
+  const handleUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newUnit = e.target.value;
+    setUnit(newUnit);
+    localStorage.setItem("unit", newUnit);
+  };
 
   const calculateBMI = () => {
     const h = parseFloat(height);
     const w = parseFloat(weight);
 
-    if (!h || !w) return;
+    if (!h || h <= 0) {
+      setError("Please enter a valid positive height.");
+      return;
+    }
+    if (!w || w <= 0) {
+      setError("Please enter a valid positive weight.");
+      return;
+    }
 
     let bmi: number;
-    if (unit === 'metric') {
+    if (unit === "metric") {
       bmi = w / ((h / 100) * (h / 100));
     } else {
       bmi = (w * 703) / (h * h);
@@ -30,21 +55,29 @@ export default function Calculator() {
     let color: string;
 
     if (bmi < 18.5) {
-      category = 'Underweight';
-      color = 'text-blue-600';
+      category = "Underweight";
+      color = "text-blue-600";
     } else if (bmi < 25) {
-      category = 'Normal';
-      color = 'text-green-600';
+      category = "Normal";
+      color = "text-green-600";
     } else if (bmi < 30) {
-      category = 'Overweight';
-      color = 'text-yellow-600';
+      category = "Overweight";
+      color = "text-yellow-600";
     } else {
-      category = 'Obese';
-      color = 'text-red-600';
+      category = "Obese";
+      color = "text-red-600";
     }
 
     setResult({ bmi, category, color });
-    localStorage.setItem('lastBMI', JSON.stringify({ bmi, category, color }));
+    setError("");
+    localStorage.setItem("lastBMI", JSON.stringify({ bmi, category, color }));
+  };
+
+  const resetCalculator = () => {
+    setHeight("");
+    setWeight("");
+    setResult(null);
+    setError("");
   };
 
   return (
@@ -57,13 +90,15 @@ export default function Calculator() {
           </div>
 
           <div className="bg-white p-8 rounded-lg shadow-md">
+            {error && <div className="mb-4 text-red-500 font-medium">{error}</div>}
+
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Unit System
               </label>
               <select
                 value={unit}
-                onChange={(e) => setUnit(e.target.value)}
+                onChange={handleUnitChange}
                 className="w-full p-2 border rounded-md"
               >
                 <option value="metric">Metric (cm/kg)</option>
@@ -73,46 +108,49 @@ export default function Calculator() {
 
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Height ({unit === 'metric' ? 'cm' : 'inches'})
+                Height ({unit === "metric" ? "cm" : "inches"})
               </label>
               <input
                 type="number"
                 value={height}
                 onChange={(e) => setHeight(e.target.value)}
                 className="w-full p-2 border rounded-md"
-                placeholder={`Enter height in ${unit === 'metric' ? 'centimeters' : 'inches'}`}
+                placeholder={`Enter height in ${unit === "metric" ? "cm" : "inches"}`}
               />
             </div>
 
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Weight ({unit === 'metric' ? 'kg' : 'lbs'})
+                Weight ({unit === "metric" ? "kg" : "lbs"})
               </label>
               <input
                 type="number"
                 value={weight}
                 onChange={(e) => setWeight(e.target.value)}
                 className="w-full p-2 border rounded-md"
-                placeholder={`Enter weight in ${unit === 'metric' ? 'kilograms' : 'pounds'}`}
+                placeholder={`Enter weight in ${unit === "metric" ? "kg" : "lbs"}`}
               />
             </div>
 
-            <button
-              onClick={calculateBMI}
-              className="w-full bg-emerald-600 text-white py-3 rounded-md hover:bg-emerald-700 
-                       transition-colors duration-200"
-            >
-              Calculate BMI
-            </button>
+            <div className="flex space-x-4">
+              <button
+                onClick={calculateBMI}
+                className="flex-1 bg-emerald-600 text-white py-3 rounded-md hover:bg-emerald-700 transition"
+              >
+                Calculate BMI
+              </button>
+              <button
+                onClick={resetCalculator}
+                className="bg-gray-200 text-gray-800 py-3 px-4 rounded-md hover:bg-gray-300 transition"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
+            </div>
 
             {result && (
               <div className="mt-6 text-center">
-                <p className="text-2xl font-bold mb-2">
-                  Your BMI: {result.bmi.toFixed(1)}
-                </p>
-                <p className={`text-xl ${result.color}`}>
-                  Category: {result.category}
-                </p>
+                <p className="text-2xl font-bold mb-2">Your BMI: {result.bmi.toFixed(1)}</p>
+                <p className={`text-xl ${result.color}`}>Category: {result.category}</p>
               </div>
             )}
           </div>

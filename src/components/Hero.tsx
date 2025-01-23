@@ -1,9 +1,27 @@
-import React from 'react';
-import { ArrowRight } from 'lucide-react';
+import React from "react";
+import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function Hero() {
+  const navigate = useNavigate();
+
   const scrollToCalculator = () => {
-    document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' });
+    // Navigate to the Calculator route
+    navigate("/calculator");
+
+    // Use a timeout to wait for the route to render the component before scrolling
+    setTimeout(() => {
+      const calculatorSection = document.getElementById("calculator");
+      if (calculatorSection) {
+        calculatorSection.scrollIntoView({ behavior: "smooth" });
+        calculatorSection.classList.add("highlight");
+        setTimeout(() => {
+          calculatorSection.classList.remove("highlight");
+        }, 1000);
+      } else {
+        console.error("Calculator section not found");
+      }
+    }, 100); // Adjust timeout as needed
   };
 
   return (

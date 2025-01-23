@@ -1,44 +1,76 @@
-import React, { useState, useEffect } from 'react';
-import Header from './components/Header';
-import Hero from './components/Hero';
-import Calculator from './components/Calculator';
-import DietPlan from './components/DietPlan';
-import About from './components/About';
-import Footer from './components/Footer';
+import React, { useState } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import Hero from "./components/Hero";
+import Calculator from "./components/Calculator";
+import DietPlan from "./components/DietPlan";
+import About from "./components/About";
+import Login from "./components/Login";
+import Signup from "./components/Signup";
+import PrivateRoute from "./components/PrivateRoute";
 
 function App() {
-  const [theme, setTheme] = useState('light');
-
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    setTheme(savedTheme);
-    document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-  }, []);
+  const [theme, setTheme] = useState(() => {
+    return localStorage.getItem("theme") || "light";
+  });
 
   const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
+    const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    localStorage.setItem("theme", newTheme);
   };
 
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900">
-      <button
-        onClick={toggleTheme}
-        className="fixed bottom-4 right-4 p-2 bg-gray-200 dark:bg-gray-700 rounded-full 
-                 shadow-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200"
-      >
-        {theme === 'light' ? '🌙' : '☀️'}
-      </button>
-      
-      <Header />
-      <main>
-        <Hero />
-        <Calculator />
-        <DietPlan />
-        <About />
-      </main>
+    <div>
+      <Header toggleTheme={toggleTheme} theme={theme} />
+      <Routes>
+        {/* Public Routes */}
+        <Route
+          path="/login"
+          element={<Login onLogin={() => setIsAuthenticated(true)} />}
+        />
+        <Route path="/signup" element={<Signup />} />
+
+        {/* Private Routes */}
+        <Route
+          path="/home"
+          element={
+            <PrivateRoute>
+              <Hero />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/calculator"
+          element={
+            <PrivateRoute>
+              <Calculator />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/diet"
+          element={
+            <PrivateRoute>
+              <DietPlan />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/about"
+          element={
+            <PrivateRoute>
+              <About />
+            </PrivateRoute>
+          }
+        />
+
+        {/* Default Catch-All Route */}
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
       <Footer />
     </div>
   );
