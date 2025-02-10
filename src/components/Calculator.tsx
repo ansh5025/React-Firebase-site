@@ -17,12 +17,7 @@ export default function Calculator() {
   useEffect(() => {
     const savedUnit = localStorage.getItem("unit") || "metric";
     setUnit(savedUnit);
-
-    // Scroll to calculator section when the component is mounted
-    const calculatorSection = document.getElementById("calculator");
-    if (calculatorSection) {
-      calculatorSection.scrollIntoView({ behavior: "smooth" });
-    }
+    // Remove the automatic scrolling
   }, []);
 
   const handleUnitChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
